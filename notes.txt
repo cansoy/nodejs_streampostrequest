@@ -1,0 +1,149 @@
+//////////////////////////////////////////////////////////////
+    // eventlistener
+    const filename=req.headers.filename
+    let bufferCounter=1
+    const ws=fs.createWriteStream(filename)
+    req.on("data",chunk=>{
+        ws.write(chunk)
+    })
+    req.on("end",()=>{
+        res.redirect("/completed")
+    })
+//////////////////////////////////////////////////////////////
+    // pipe 
+    const filename=req.headers.filename
+    const ws=fs.createWriteStream(filename)
+    let bufferCounter=1
+    console.log("=====================================================")
+    req.pipe(ws)
+    console.log(bufferCounter++)
+    res.redirect("/completed")
+//////////////////////////////////////////////////////////////
+    // pipeline
+    const filename=req.headers.filename
+    const ws=fs.createWriteStream(filename)
+    console.log("=====================================================")
+    stream.pipeline(
+        req,
+        ws,
+        err=>{
+            if (err) {
+                console.log(err) 
+            }
+        }
+    )
+    res.redirect("/completed")
+//////////////////////////////////////////////////////////////
+    // pipeline transform
+    const filename=req.headers.filename
+    const ws=fs.createWriteStream(filename)
+    console.log("=====================================================")
+    const chunks=new stream.Transform({
+        transform(chunk,encoding,cb){
+            console.log(chunk)
+            cb(null,chunk)
+        }
+    })
+    stream.pipeline(
+        req,
+        chunks,
+        ws,
+        err=>{
+            if (err) {
+               console.log(err) 
+            }
+        }
+    )
+    res.redirect("/completed")
+//////////////////////////////////////////////////////////////
+    //pipeline important notes
+    const filename=req.headers.filename
+    let chunkCounter=1
+    const ws=fs.createWriteStream(filename)
+    console.log("=====================================================")
+    const chunks=new stream.Transform({
+        transform(chunk,encoding,cb){
+            console.log(chunkCounter++)
+            console.log(chunk.length)
+            console.log(chunk)
+            const uint8=new Uint8Array(chunk)
+            console.log(uint8)
+            console.log("============>>>>>>>>>>>>>")
+            cb(null,chunk)
+        }
+    })
+    stream.pipeline(
+        req,
+        chunks,
+        ws,
+        err=>{
+            if (err) {
+               console.log(err) 
+            }
+        }
+    )
+    res.redirect("/completed")
+//////////////////////////////////////////////////////////////
+    //pipeline transform section2
+    await dbconnect()
+    const filename=req.headers.filename
+    await SchemaFile.deleteMany()
+    const ws=fs.createWriteStream(filename)
+    const ws2=fs.createWriteStream(`2_${filename}`)
+    const dbtransfer=new stream.Transform({
+        transform(chunk,encoding,cb){
+            const schemaFile=new SchemaFile({
+                registerTime:new Date().getMilliseconds(),
+                bufferCounter:"String",
+                fileName:filename,
+                fileSelf:chunk
+            })
+            // console.log(schemaFile.fileSelf)
+            // console.log(schemaFile.fileSelf.toJSON())
+            const buffer=schemaFile.fileSelf.map(item=>{
+                return item
+            })
+            ws2.write(buffer)
+            console.log("==============================================")
+            cb(null,chunk)
+        }
+    })
+    stream.pipeline(
+        req,
+        dbtransfer,
+        ws,
+        err=> {if (err) {console.log(err)}}
+    )
+    res.redirect("/completed")
+//////////////////////////////////////////////////////////////
+    //pipeline transform section3
+    await dbconnect()
+    const filename=req.headers.filename
+    await SchemaFile.deleteMany()
+    const ws=fs.createWriteStream(filename)
+    const ws2=fs.createWriteStream(`2_${filename}`)
+    const dbtransfer=new stream.Transform({
+        transform(chunk,encoding,cb){
+            const schemaFile=new SchemaFile({
+                registerTime:new Date().getTime(),
+                bufferCounter:"String",
+                fileName:filename,
+                fileSelf:chunk
+            })
+            const buffer=schemaFile.fileSelf.map(item=>item)
+            ws2.write(buffer)
+            console.log("time is save")
+            console.log(schemaFile.registerTime)
+            schemaFile.save()
+            console.log("==============================================")
+            cb(null,chunk)
+        }
+    })
+    stream.pipeline(
+        req,
+        dbtransfer,
+        ws,
+        err=> {if (err) {console.log(err)}}
+    )
+    res.redirect("/completed")
+//////////////////////////////////////////////////////////////
